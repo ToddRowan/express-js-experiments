@@ -9,25 +9,37 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 
-// view engine setup
+// View engine setup:
+// Identify the path to the view files.
 app.set('views', path.join(__dirname, 'views'));
+// And identify the engine that processes those files.
 app.set('view engine', 'twig');
 
+// The logger tool has a bunch of predefined settings. This is for stdout formatting.
 app.use(logger('dev'));
+// Creates req.body with any incoming json payload.
 app.use(express.json());
+// If no json on the request, this one creates req.body from a www-form-urlencoded payload.
+// The false value for extended means that "rich objects/arrays" are not supported.
 app.use(express.urlencoded({ extended: false }));
+// Creates req.cookies with submitted cookies.
 app.use(cookieParser());
+// Routes requests to the filesystem for the subdirs of the supplied folder path.
+// Obviously we can't have routes that match the paths inside public.
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-// catch 404 and forward to error handler
+// Catch 404 and forward to error handler.
+// Is this executed here only in cases where no routes match?
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
-// error handler
+// Error handler that actually renders the error info.
+// These funcs have four args. I'm guessing express counts those
+// when it internally arranges middleware.
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
