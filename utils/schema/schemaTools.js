@@ -1,57 +1,100 @@
-var mysql = require('mysql');
-var util  = require('util');
+const fs  = require('fs');
+const pathtool = require('path');
+const mysql = require('mysql');
 // No var assignment is necessary if you aren't going to use it as an object.
-// TODO: get rid of hard-coded paths. Figure out the alternative to this.
-require('dotenv').config({path: 'D:\\WebstormProjects\\new-blog-work\\.env'});
+require('dotenv').config({path: pathtool.dirname(fs.realpathSync(__filename)) + '../../../.env'});
 
-// Use let
+// Use let and const
 // Use async for each action
 // Tie them all together with then
 // and throw in one catch at the end for different failure types
 // Then use await for each DB call.
 // https://javascript.info/async-await for good await guides.
 
-let connection = mysql.createConnection({
+// The multipleStatements option allows us to execute files.
+const connection = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
-  database: process.env.DB_NAME
+  database: process.env.DB_NAME,
+  multipleStatements: true
 });
 
-let conProm = new Promise((res, rej) => {
-  connection.connect(function(err) {
+const getConnection = new Promise((res, rej) => {
+  connection.connect(err => {
     if (err) {
-      rej('error connecting: ' + err);
+      rej('Error connecting: ' + err);
     }
     else {
-      res(connection);
+      res();
     }
   });
 });
 
-let tableQuery = new Promise((res, rej) => {
-  connection.query('SHOW TABLES', (err, rows, colInfo) => {
+const getTables = new Promise((res, rej) => {
+  connection.query('SHOW TABLES', (err, retrievedRows, colInfo) => {
     if (err) {
       rej(err);
     }
     else {
+      let rows = [];
+      // Each returned row has a named property for each column.
+      retrievedRows.forEach(element => {
+        let tablename = element['Tables_in_' + process.env.DB_NAME];
+        rows.push(tablename);
+      });
+
       res(rows);
     }
   });
 });
 
-conProm
-  .then(con => {
-    console.log('Connection status is: ' + con.state);
-    tableQuery.then( rows => {
-      console.log('Table count: ' + rows.length);
-      // Each returned row has a named property for each column.
-      rows.forEach(element => console.log('Table: ' + element['Tables_in_' + process.env.DB_NAME]));
-    })
-      .catch(err => {console.log('fucked tableQuery.');})
-      .finally( () => {process.exit(0);});
+const dropTables = (rows) => {
+  return new Promise((res, rej) => {
+    if (rows.length > 0) {
+      console.log('Deleting ' + rows.length + ' tables from the database.');
+      connection.query('DROP TABLE IF EXISTS ' + rows.join(), (err, okPacket, colInfo) => {
+        if (err) {
+          rej(err);
+        } else {
+          res();
+        }
+      });
+    }
+    else {
+      console.log('No rows to delete.');
+      res();
+    }
+  });
+};
+
+const createTables = () => {
+  return new Promise( (res, rej) => {
+    const sql = fs.readFileSync(pathtool.dirname(fs.realpathSync(__filename)) + '/sql/db.sql').toString();
+    console.log('Running create table script.');
+    connection.query(sql, (err, rows, colInfo) => {
+      if (err) {
+        rej(err);
+      }
+      else {
+        res(rows);
+      }
+    });
+
+  });
+};
+
+getConnection
+  .then(() => {
+    getTables
+      .then(dropTables)
+      .then(createTables)
+      .catch(err => {console.log('Error in table replacement: ' + err);})
+      .finally( () => {
+        console.log('Done.');
+        process.exit(0);});
   })
   .catch(err => {
-    console.log('fucked connection obtaining.');
+    console.log('Connection failure: ' + err);
     process.exit(1);
   });
