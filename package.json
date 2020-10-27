@@ -17,5 +17,8 @@
   },
   "devDependencies": {
     "eslint": "^7.7.0"
+  },
+  "scripts" : {
+    "flushdb": "node ./utils/schema/schemaTools.js"
   }
 }

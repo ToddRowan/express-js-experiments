@@ -62,7 +62,7 @@ const dropTables = (rows) => {
       });
     }
     else {
-      console.log('No rows to delete.');
+      console.log('No tables to delete.');
       res();
     }
   });
