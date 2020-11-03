@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "flushdb": "node ./utils/schema/schemaTools.js",
+    "test": "jest"
   },
   "dependencies": {
     "cookie-parser": "~1.4.5",
@@ -16,9 +17,7 @@
     "twig": "~1.15.2"
   },
   "devDependencies": {
-    "eslint": "^7.7.0"
-  },
-  "scripts" : {
-    "flushdb": "node ./utils/schema/schemaTools.js"
+    "eslint": "^7.7.0",
+    "jest": "^26.6.1"
   }
 }
