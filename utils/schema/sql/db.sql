@@ -9,7 +9,8 @@ CREATE TABLE posts (
         name VARCHAR(255) NOT NULL,
         guid VARCHAR(64) NOT NULL,
         status TINYINT UNSIGNED DEFAULT 0,
-        comment_status BIT DEFAULT 1
+        comment_status BIT DEFAULT 1,
+        UNIQUE KEY unique_guid (guid)
     )
 ENGINE=InnoDB CHARACTER SET utf8;
 
