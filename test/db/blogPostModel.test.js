@@ -19,13 +19,3 @@ test('All properties set.', () => {
   expect(model.content).toBe('content');
   expect(model.id).toBe(1);
 });
-
-test('Empty object to have false for publish status.', () => {
-  let model = new bpm();
-  expect(model.status).toBe(false);
-});
-
-test('Empty object to have true for comment status.', () => {
-  let model = new bpm();
-  expect(model.commentStatus).toBe(true);
-});
