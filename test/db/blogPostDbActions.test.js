@@ -1,4 +1,4 @@
-const bpda = require('../../lib/db/mysql/blogPostDbActions.js');
+const bpda = require('../../lib/db/mysql/actions/blogPostDbActions.js');
 
 test('We get an insert to complete.', () => {
   expect.assertions(1);
