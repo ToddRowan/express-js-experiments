@@ -84,17 +84,22 @@ const createTables = () => {
   });
 };
 
-getConnection
-  .then(() => {
-    getTables
-      .then(dropTables)
-      .then(createTables)
-      .catch(err => {console.log('Error in table replacement: ' + err);})
-      .finally( () => {
-        console.log('Done.');
-        process.exit(0);});
-  })
-  .catch(err => {
-    console.log('Connection failure: ' + err);
-    process.exit(1);
-  });
+module.exports.flushDb = () => {
+  getConnection
+    .then(() => {
+      getTables
+        .then(dropTables)
+        .then(createTables)
+        .catch(err => {
+          console.log('Error in table replacement: ' + err);
+        })
+        .finally(() => {
+          console.log('Done.');
+          process.exit(0);
+        });
+    })
+    .catch(err => {
+      console.log('Connection failure: ' + err);
+      process.exit(1);
+    });
+};

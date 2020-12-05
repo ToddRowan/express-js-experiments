@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "flushdb": "node ./utils/schema/schemaTools.js",
+    "flushdb": "node -e \"require('./utils/schema/schemaTools').flushDb()\"",
     "test": "jest --setupFiles dotenv/config"
   },
   "dependencies": {
