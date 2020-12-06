@@ -1,8 +1,6 @@
 const fs  = require('fs');
 const pathtool = require('path');
 const mysql = require('mysql');
-// No var assignment is necessary if you aren't going to use it as an object.
-require('dotenv').config({path: pathtool.dirname(fs.realpathSync(__filename)) + '../../../.env'});
 
 // Use let and const
 // Use async for each action
@@ -11,16 +9,18 @@ require('dotenv').config({path: pathtool.dirname(fs.realpathSync(__filename)) + 
 // Then use await for each DB call.
 // https://javascript.info/async-await for good await guides.
 
-// The multipleStatements option allows us to execute files.
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  multipleStatements: true
-});
+let connection = null;
 
 const getConnection = new Promise((res, rej) => {
+  // The multipleStatements option allows us to execute files.
+  connection = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    multipleStatements: true
+  });
+
   connection.connect(err => {
     if (err) {
       rej('Error connecting: ' + err);
@@ -84,22 +84,27 @@ const createTables = () => {
   });
 };
 
-module.exports.flushDb = () => {
-  getConnection
-    .then(() => {
-      getTables
-        .then(dropTables)
-        .then(createTables)
-        .catch(err => {
-          console.log('Error in table replacement: ' + err);
-        })
-        .finally(() => {
-          console.log('Done.');
-          process.exit(0);
-        });
-    })
-    .catch(err => {
-      console.log('Connection failure: ' + err);
-      process.exit(1);
-    });
+module.exports.flushDb = async () => {
+  return new Promise( (res, rej) => {
+    getConnection
+      .then(() => {
+        getTables
+          .then(dropTables)
+          .then(createTables)
+          .catch(err => {
+            console.log('Error in table replacement: ' + err);
+            rej();
+          })
+          .finally(() => {
+            console.log('Done removing tables.');
+            // If we don't close the connection, the method never finishes.
+            connection.destroy();
+            res();
+          });
+      })
+      .catch(err => {
+        console.log('Connection failure: ' + err);
+        rej();
+      });
+  });
 };
